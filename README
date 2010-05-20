@@ -1,0 +1,55 @@
+
+================================================================================
+
+mkthumbs - Makes thumbnails in .thumbnails dir. Suitable for gqview etc.
+
+DESCRIPTION
+    I use gqview, it makes thumbnails, but very slowly. The program 'epeg'
+    makes them incredibly quick at low quality. This uses epeg to create
+    thumbnails that will be accepted by gqview so you won't have to wait.
+
+USAGE
+    mkthumbs [OPTIONS].. DIRPATH..
+
+       -h help
+       -d debug
+       -v version
+
+  USAGE EXAMPLES
+       mkthumbs ./dir/with/images
+
+AUTHOR
+    Leo Charre leocharre at cpan dot org
+
+LICENSE
+    This package is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself, i.e., under the terms of the
+    "Artistic License" or the "GNU General Public License".
+
+DISCLAIMER
+    This package is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+    See the "GNU General Public License" for more details.
+
+
+--------------------------------------------------------------------------------
+
+
+
+REQUIRES
+
+File::Which: 0.05
+Getopt::Std::Strict: 1.01
+LEOCHARRE::Dir: 1.08
+Test::Simple: 0
+
+
+INSTALL
+
+   perl Makefile.PL
+   make install
+
+
+

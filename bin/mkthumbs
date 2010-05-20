@@ -1,0 +1,145 @@
+#!/usr/bin/perl
+use strict;
+use LEOCHARRE::Dir 'lsf';
+use File::Which 'which';
+use Getopt::Std::Strict 'hvd';
+our $VERSION = sprintf "%d.%02d", q$Revision: 1.3 $ =~ /(\d+)/g;
+$opt_h and print STDERR usage() and exit;
+$opt_v and print "$VERSION\n" and exit;
+
+
+
+
+my $have_epeg = which('epeg') or warn("missing epeg");
+
+@ARGV or push @ARGV,'./';
+my $fails=0;
+DIR: for my $d ( @ARGV ){
+   -d $d or die("not dir: $d");
+
+   my @f = grep { /\.jpe?g$/i } lsf($d);
+     
+   (@f and scalar @f) 
+      or #warn("No jpgs here\n") 
+      #and 
+      next DIR;
+
+   my $dt = "$d/.thumbnails";
+   #-d $dt or 
+   mkdir $dt;
+
+   my $made = 0;
+   my $total = scalar @f;
+
+   my $time = time();
+
+   FILE: for my $filename ( @f ){ ### Working===[%]
+      
+      my $in = "$d/$filename";
+      my $out = "$dt/$filename";
+      my $thu = "$dt/$filename.png";
+      -f $thu 
+         and next FILE;
+
+      if($have_epeg){
+         unless( system('epeg', '-m', '96,96', $in, $out ) == 0  ){
+            warn("$in, $?");
+            $fails++;
+            next FILE;
+         }
+      }
+      else {
+         unless( system('convert',$in,'-resize','96x96',$out )==0 ){
+            warn("$in, $?");
+            $fails++;
+            next FILE;
+         }
+      }
+
+      # need to do this because a png is expected instead of a jpg file
+      # why not just use imagemagick? because epeg is so much faster
+      unless( system('convert',$out,$thu) == 0 ){
+         warn($out,$?);
+         unlink $out;
+         $fails++;
+         next FILE;
+      }
+
+      unlink $out;
+      system('touch', $in); # YUP, needed to be touched... for gqview
+
+      $made++;
+   }
+
+   my $elapsed = time() - $time;
+   ($made and $elapsed )
+      or ( warn("$d\n") and next DIR );
+
+
+   my $perpic  =  (  $elapsed / $made);
+
+   warn("$d, Made $made of $total. $elapsed s. Average: $perpic s.\n") if $opt_d;
+
+}
+
+
+
+exit $fails;
+
+sub usage {q{mkthumbs [OPTION].. DIRPATH..
+Makes thumbnails in DIR for jpg images .thumbnails dir. Suitable for gqview etc.
+
+   -h help
+   -d debug
+   -v version
+
+Try 'man mkthumbs' for more info.
+}}
+
+
+
+
+__END__
+
+=pod
+
+=head1 NAME
+
+mkthumbs - Makes thumbnails in .thumbnails dir. Suitable for gqview etc.
+
+=head1 DESCRIPTION
+
+I use gqview, it makes thumbnails, but very slowly.
+The program 'epeg' makes them incredibly quick at low quality.
+This uses epeg to create thumbnails that will be accepted by gqview so you won't have to wait.
+
+=head1 USAGE
+
+mkthumbs [OPTIONS].. DIRPATH..
+
+
+   -h help
+   -d debug
+   -v version
+
+
+=head2 USAGE EXAMPLES
+
+   mkthumbs ./dir/with/images
+
+=head1 AUTHOR
+
+Leo Charre leocharre at cpan dot org
+
+=head1 LICENSE
+
+This package is free software; you can redistribute it and/or modify it under the same terms as Perl itself, i.e., under the terms of the "Artistic License" or the "GNU General Public License".
+
+=head1 DISCLAIMER
+
+This package is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+See the "GNU General Public License" for more details.
+
+=cut
+
